@@ -1,10 +1,16 @@
 import 'package:chetingapp/screen/auth/login_page.dart';
 import 'package:chetingapp/screen/home_screen.dart';
 import 'package:chetingapp/screen/splass_screen/splass_screen.dart';
+import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
-void main() {
+import 'Global/global.dart';
+
+void main() async{
+  WidgetsFlutterBinding.ensureInitialized();
+  await Firebase.initializeApp();
+  await Globals.init();
   runApp(const MyApp());
 }
 

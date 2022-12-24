@@ -4,7 +4,10 @@ import 'package:chetingapp/widged/login_widget.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_svg/flutter_svg.dart';
+import 'package:fluttertoast/fluttertoast.dart';
 import 'package:get/get.dart';
+import 'package:firebase_auth/firebase_auth.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 class LoginScreen extends StatefulWidget {
   const LoginScreen({Key? key}) : super(key: key);
 
@@ -17,6 +20,14 @@ class _LoginScreenState extends State<LoginScreen>with SingleTickerProviderState
   Animation<double>? conteinarsize;
   AnimationController? animationController;
   Duration animationDuretion=Duration(microseconds: 250);
+
+  FirebaseAuth _auth=FirebaseAuth.instance;
+  bool loder=false;
+
+  TextEditingController namecontrollar=TextEditingController();
+  TextEditingController emailcontrollar=TextEditingController();
+  TextEditingController passwordcontrollar=TextEditingController();
+
 
   @override
   void initState() {
@@ -34,9 +45,9 @@ class _LoginScreenState extends State<LoginScreen>with SingleTickerProviderState
   @override
   Widget build(BuildContext context) {
     Size size = MediaQuery.of(context).size;
-    TextEditingController namecontrollar=TextEditingController();
-    TextEditingController emailcontrollar=TextEditingController();
-    TextEditingController passwordcontrollar=TextEditingController();
+
+
+
 
     double viewInset = MediaQuery.of(context).viewInsets.bottom; // we are using this to determine Keyboard is opened or not
     var defaultLoginSize = size.height - (size.height * 0.2);
@@ -82,13 +93,13 @@ class _LoginScreenState extends State<LoginScreen>with SingleTickerProviderState
                       SizedBox(height:15),
                       SvgPicture.asset("asset/login.svg",height: 200,width: 200,),
 
-                      TextFildWidged(name: "Email", icon:Icon(Icons.email,color: Color(0XFF6A62B7),),controller: namecontrollar,),
+                      TextFildWidged(name: "Email", icon:Icon(Icons.email,color: Color(0XFF6A62B7),),controller: emailcontrollar,),
 
                       TextFildWidged(name: "password", icon:Icon(Icons.lock,color: Color(0XFF6A62B7),),controller: passwordcontrollar,),
 
                       InkWell(
                         onTap: (){
-                         Get.to(HomeScreen());
+                         login();
                         },
                         child: Padding(
                           padding: const EdgeInsets.only(left: 65,right: 65),
@@ -101,7 +112,7 @@ class _LoginScreenState extends State<LoginScreen>with SingleTickerProviderState
                             child: Padding(
                               padding: const EdgeInsets.all(8.0),
                               child: Center(
-                                child: Text("Login",style: TextStyle(fontSize: 20,fontWeight: FontWeight.bold),),
+                                child:loder?Center(child: CircularProgressIndicator(color: Colors.pink,),): Text("Login",style: TextStyle(fontSize: 20,fontWeight: FontWeight.bold),),
 
                               ),
                             ),
@@ -154,7 +165,7 @@ class _LoginScreenState extends State<LoginScreen>with SingleTickerProviderState
 
                       InkWell(
                         onTap: (){
-
+                          register();
                         },
                         child: Padding(
                           padding: const EdgeInsets.only(left: 65,right: 65),
@@ -166,8 +177,7 @@ class _LoginScreenState extends State<LoginScreen>with SingleTickerProviderState
                             child: Padding(
                               padding: const EdgeInsets.all(8.0),
                               child: Center(
-                                child: Text("SingUp",style: TextStyle(fontSize: 20,fontWeight: FontWeight.bold),),
-
+                                child: loder?Center(child: CircularProgressIndicator(),):Text("SingUp",style: TextStyle(fontSize: 20,fontWeight: FontWeight.bold),),
                               ),
                             ),
                           ),
@@ -210,5 +220,120 @@ class _LoginScreenState extends State<LoginScreen>with SingleTickerProviderState
       ),
     );
   }
+
+  Future login() async{
+
+   try{
+     setState(() {
+       loder=true;
+     });
+
+     await _auth.signInWithEmailAndPassword(
+         email:emailcontrollar.text ,
+         password: passwordcontrollar.text);
+
+     Fluttertoast.showToast(
+         msg: "successful login",
+         toastLength: Toast.LENGTH_SHORT,
+         gravity: ToastGravity.CENTER,
+         timeInSecForIosWeb: 1,
+         backgroundColor: Colors.red,
+         textColor: Colors.white,
+         fontSize: 16.0
+     );
+     Get.to(HomeScreen());
+     setState(() {
+       loder=false;
+     });
+
+   }on FirebaseAuthException catch(error){
+
+     setState(() {
+       Fluttertoast.showToast(
+           msg: "${error.message}",
+           toastLength: Toast.LENGTH_SHORT,
+           gravity: ToastGravity.CENTER,
+           timeInSecForIosWeb: 1,
+           backgroundColor: Colors.red,
+           textColor: Colors.white,
+           fontSize: 16.0
+       );
+       loder=false;
+     });
+   }
 }
+
+  Future register() async{
+
+    try{
+      setState(() {
+        loder=true;
+      });
+
+     final user= await _auth.createUserWithEmailAndPassword(
+          email:emailcontrollar.text ,
+          password: passwordcontrollar.text);
+
+       if(user.user!=null){
+        userdetels();
+
+        animationController!.reverse();
+        setState(() {
+          islogin=!islogin;
+        });
+      }
+
+
+      Fluttertoast.showToast(
+          msg: "successful register",
+          toastLength: Toast.LENGTH_SHORT,
+          gravity: ToastGravity.CENTER,
+          timeInSecForIosWeb: 1,
+          backgroundColor: Colors.red,
+          textColor: Colors.white,
+          fontSize: 16.0
+      );
+      Get.to(LoginScreen());
+      setState(() {
+        loder=false;
+      });
+
+
+
+    }on FirebaseAuthException catch(error){
+
+      setState(() {
+        Fluttertoast.showToast(
+            msg: "${error.message}",
+            toastLength: Toast.LENGTH_SHORT,
+            gravity: ToastGravity.CENTER,
+            timeInSecForIosWeb: 1,
+            backgroundColor: Colors.red,
+            textColor: Colors.white,
+            fontSize: 16.0
+        );
+        loder=false;
+      });
+    }
+  }
+
+  Future userdetels()async{
+
+   await FirebaseFirestore.instance.collection("user").add(
+       {
+        "name": namecontrollar.text,
+         "email":emailcontrollar.text,
+         "uid":_auth.currentUser!.uid,
+         "photo":_auth.currentUser!.photoURL,
+
+    });
+}
+
+
+
+
+
+
+}
+
 
