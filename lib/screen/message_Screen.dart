@@ -66,6 +66,7 @@ class _MessageScreenState extends State<MessageScreen> {
               color: Color.fromRGBO(225, 255, 199, 1.0),
               child: Text("Hello Developer"),
             ),
+
           ],
 
         ),
