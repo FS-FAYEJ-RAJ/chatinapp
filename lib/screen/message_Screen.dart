@@ -1,3 +1,4 @@
+import 'package:emoji_picker_flutter/emoji_picker_flutter.dart';
 import 'package:flutter/material.dart';
 import 'package:bubble/bubble.dart';
 
@@ -12,9 +13,13 @@ class MessageScreen extends StatefulWidget {
 }
 
 class _MessageScreenState extends State<MessageScreen> with SingleTickerProviderStateMixin {
+  bool emojiVisible=true;
+
   TextEditingController massegeControllar=TextEditingController();
   AnimationController? controller;
-  String changebutton="";
+  String changeButton="";
+  String changeemoji="";
+  String changefile="";
   String admin = "";
   bool showMic = false;
   bool readOnly = false;
@@ -115,20 +120,117 @@ class _MessageScreenState extends State<MessageScreen> with SingleTickerProvider
             children: [
               Expanded(
                 child: MassageTextFildWidget(
-                  icon: Icon(Icons.file_copy),
-                  icon2: Icon(Icons.emoji_emotions,)
+                  onTab: (){
+                   setState(() {
+                     emojiVisible=true;
+                   });
+                  },
+                  icon: GestureDetector(
+                    onTap: (){
+
+                    },
+                      child: Icon(Icons.file_copy)),
+                  icon2:GestureDetector(
+                    onTap: (){
+                      setState(() {
+                        emojiVisible=!emojiVisible;
+                        FocusScope.of(context).unfocus();
+
+                      });
+
+                    },
+
+                      child: Icon(Icons.emoji_emotions,))
                   ,controller: massegeControllar,
                 readOnly:readOnly ,
-                name: "Type Messages",),
+                 onChanged: (value){
+                    setState(() {
+                      changeButton=value;
+                      print("Data....${changeButton}");
+                    });
+                 },
+                name: "Type Messages....",),
               ),
-              RecordButton(controller: controller!)
+
+              changeButton !=""|| changeemoji!="" || changefile!="" ?  GestureDetector(
+                    onTap: () {
+                    },
+                    child: Container(
+                      height: 50,
+                      width: 50,
+                      decoration: BoxDecoration(
+                        color: Theme.of(context).primaryColor,
+                        borderRadius: BorderRadius.circular(30),
+                      ),
+                      child: const Center(
+                          child: Icon(
+                            Icons.send,
+                            color: Colors.white,
+                          )),
+                    ),
+                  )
+
+              : RecordButton(controller: controller!)
 
             ],
-          )
-        ],
+          ),
+           
+           emojiPicker()
+          
+
+    ],
 
       ),
 
     );
   }
+
+    emojiPicker(){
+
+    return Offstage(
+      offstage: emojiVisible,
+      child: SizedBox(
+        height: 250,
+        child: EmojiPicker(
+          onEmojiSelected: (Category,Emoji emoji){
+            setState(() {
+              changeButton =emoji.emoji.toString();
+            });
+            print(emoji.name);
+            print(emoji.emoji);
+          },
+          onBackspacePressed: (){
+          },
+          textEditingController: massegeControllar,
+          config:Config(
+            columns: 7,
+            emojiSizeMax: 32,// Issue: https://github.com/flutter/flutter/issues/28894
+            verticalSpacing: 0,
+            horizontalSpacing: 0,
+            gridPadding: EdgeInsets.zero,
+            initCategory: Category.RECENT,
+            bgColor: Color(0xFFF2F2F2),
+            indicatorColor: Colors.blue,
+            iconColor: Colors.grey,
+            iconColorSelected: Colors.blue,
+            backspaceColor: Colors.blue,
+            skinToneDialogBgColor: Colors.white,
+            skinToneIndicatorColor: Colors.grey,
+            enableSkinTones: true,
+            showRecentsTab: true,
+            recentsLimit: 28,
+            noRecents: const Text(
+              'No Recents',
+              style: TextStyle(fontSize: 20, color: Colors.black26),
+              textAlign: TextAlign.center,
+            ), // Needs to be const Widget
+            loadingIndicator: const SizedBox.shrink(), // Needs to be const Widget
+            tabIndicatorAnimDuration: kTabScrollDuration,
+            categoryIcons: const CategoryIcons(),
+            buttonMode: ButtonMode.MATERIAL,
+          ),
+        ),
+      ),
+    );
+   }
 }

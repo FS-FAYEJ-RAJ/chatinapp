@@ -2,11 +2,18 @@ import 'package:flutter/material.dart';
 class MassageTextFildWidget extends StatelessWidget {
   TextEditingController controller;
   String name;
-  Icon icon;
-  Icon icon2;
+  Widget icon;
+  Widget icon2;
   bool readOnly;
-
-  MassageTextFildWidget({Key? key, this.readOnly = false,required this.name,required this.icon,required this.controller,required this.icon2, }) : super(key: key);
+  Function(String) onChanged;
+  Function() onTab;
+  MassageTextFildWidget({Key? key, this.readOnly = false,
+    required this.name,
+    required this.icon,
+    required this.controller,
+    required this.icon2,
+    required this.onTab,
+  required this.onChanged}) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
@@ -21,8 +28,10 @@ class MassageTextFildWidget extends StatelessWidget {
       child: TextField(
         maxLines: 8,
         minLines: 1,
+        onTap: onTab,
         controller: controller,
         readOnly: readOnly,
+        onChanged: onChanged,
         //10
         decoration: InputDecoration(
             hintText: name,
